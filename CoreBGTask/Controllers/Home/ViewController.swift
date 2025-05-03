@@ -16,12 +16,10 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         requestNotificationPermission()   // Ask for notification access
+        performMLTask() // Start ML task on button tap
         registerBackgroundTask()         // Register background task handler
     }
 
-    @IBAction func tappedStartTaskBtn(_ sender: Any) {
-        performMLTask() // Start ML task on button tap
-    }
 
     // MARK: - Background Task Registration
 
@@ -50,10 +48,11 @@ class ViewController: UIViewController {
         UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
 
         startTime = Date()
-        let images = Array(repeating: ["1", "2", "3"], count: 500).flatMap { $0 }
+        // you can change count from 100 to more if you need more images to test
+        let images = Array(repeating: ["1", "2", "3"], count: 100).flatMap { $0 }
 
         for (index, name) in images.enumerated() {
-            DispatchQueue.global().asyncAfter(deadline: .now() + Double(index * 10)) {
+            DispatchQueue.global().asyncAfter(deadline: .now() + Double(index * 10)) { // 10 seconds per iteration you can increase time from here
                 guard let img = UIImage(named: name),
                       let result = self.runModelPrediction(with: img) else { return }
 
@@ -66,7 +65,10 @@ class ViewController: UIViewController {
                 }
 
                 let body = "Runtime: \(String(format: "%.1f", runtime))s"
-                self.sendNotification(title: "Completed Tasks: \(self.taskCount)", body: body) // Send local notification
+                if self.taskCount == images.count {
+                    self.sendNotification(title: "✅ All Tasks Completed", body: body)
+                }
+
             }
         }
     }
